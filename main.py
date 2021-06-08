@@ -1,3 +1,5 @@
+import time
+
 import cv2
 import random
 import numpy as np
@@ -14,15 +16,18 @@ toolbar_width = 50
 img_amt = 2500
 increment = img_amt // toolbar_width
 
+
 # function that looks at file name to check whether it's a dog or cat in training data
 def label_img(img):
     word_label = img.split('.')[-3]
     # conversion to single number
     # can optionally make it a conversion to one-hot array by returning [1,0] or [0,1]
     #  1 = cat
-    if word_label == 'cat': return 1
+    if word_label == 'cat':
+        return 1
     #  0 = dog
-    elif word_label == 'dog': return 0
+    elif word_label == 'dog':
+        return 0
 
 
 # creates training data (converts images to grayscale)
@@ -46,10 +51,10 @@ def process_data():
         # set the label for the pixel data - either 1 (cat) or 0 (dog)
         label = label_img(img)
         # get training data image
-        path = os.path.join(images_dir,img)
+        path = os.path.join(images_dir, img)
         img = cv2.imread(path)
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        gray = cv2.resize(gray, (IMG_SIZE,IMG_SIZE))
+        gray = cv2.resize(gray, (IMG_SIZE, IMG_SIZE))
         # uncomment the line below this if you want the image pixels in 1-d
         gray = gray.flatten()
         my_data.append(np.array(gray))
@@ -64,17 +69,18 @@ def process_data():
     return my_data, my_result
 
 
-
 X, y = process_data()
 X = np.array(X)
-X = X/255.
+X = X / 255.
 # https://machinelearningmastery.com/how-to-manually-scale-image-pixel-data-for-deep-learning/
 # Global Centering -  We can test our model both ways - centering before and centering after
 # dividing by 255 (normalization)
 mean_X = np.mean(X)
 std_X = np.std(X)
-X = (X - mean_X)/std_X
-X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=(3/4), random_state=0)
+X = (X - mean_X) / std_X
+X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=(3 / 4), random_state=0)
+
+
 # get a sample of 100 points from training data
 
 def getNImg(n):
@@ -87,10 +93,20 @@ def getNImg(n):
 
     return train_data
 
-ih=[]
 
-pop = Population(2560, IMG_SIZE)
+ih = []
 
+pop = Population(2048, IMG_SIZE)
+
+first_run = True
+start = time.time()
 while True:
-    pop.simulatePopulation(getNImg(250))
+    pop.simulatePopulation(getNImg(150))
     pop.naturalSelection()
+    if first_run:
+        end = time.time()
+        first_run = False
+        total_time = end - start
+        print("It took", total_time, "seconds to run the first generation.")
+        print("Given your IMG_Size is", IMG_SIZE, ", it may take", total_time * IMG_SIZE * IMG_SIZE / 3600,
+              "hours to get an accurate model!")

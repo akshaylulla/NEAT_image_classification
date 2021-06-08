@@ -130,9 +130,9 @@ class Genome:
             for gene in self.genes:
                 innovation_numbers.append(gene.innovation_number)
 
-                innovation_history = InnovationHistory(from_node.id, to_node.id, innovation_number, innovation_numbers)
+            innovation_history = InnovationHistory(from_node.id, to_node.id, innovation_number, innovation_numbers)
 
-                innovation_history_array.append(innovation_history)
+            innovation_history_array.append(innovation_history)
 
         self.genes.append(Connection(from_node, to_node, weight, innovation_number))
 
@@ -151,16 +151,28 @@ class Genome:
 
         return max_connections == len(self.genes)
 
+    def getAllNodesNotLayer(self, layer):
+        return_nodes = []
+        for node in self.nodes:
+            if node.layer != layer:
+                return_nodes.append(node)
+        return return_nodes
+
     def addConnection(self, innovation_history_array):
         if self.isFullyConnected():
             return
 
         node1 = self.getNode(random.randint(0, len(self.nodes)-1))
-        node2 = self.getNode(random.randint(0, len(self.nodes)-1))
+        memory_layer = node1.layer
+        other_nodes = self.getAllNodesNotLayer(node1.layer)
+        node2 = other_nodes[random.randint(0, len(other_nodes)-1)]
 
         while nodesCantConnect(node1, node2):
-            node1 = self.getNode(random.randint(0, len(self.nodes)-1))
-            node2 = self.getNode(random.randint(0, len(self.nodes)-1))
+            node1 = self.getNode(random.randint(0, len(self.nodes) - 1))
+            if node1.layer != memory_layer:
+                memory_layer = node1.layer
+                other_nodes = self.getAllNodesNotLayer(node1.layer)
+            node2 = other_nodes[random.randint(0, len(other_nodes) - 1)]
 
         if node2.layer < node1.layer:
             tmp = node1
@@ -274,7 +286,7 @@ class Genome:
             new_genome.nodes.append(node.clone())
 
         for gene in self.genes:
-            gene_clone = gene.clone(new_genome.getNode(gene.to_node.id), (new_genome.getNode(gene.from_node.id)))
+            gene_clone = gene.clone(new_genome.getNode(gene.from_node.id), (new_genome.getNode(gene.to_node.id)))
             new_genome.genes.append(gene_clone)
 
         new_genome.layers = self.layers

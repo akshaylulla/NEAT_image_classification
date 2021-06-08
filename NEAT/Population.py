@@ -1,3 +1,4 @@
+import json
 import math
 import os.path
 from datetime import datetime
@@ -13,16 +14,20 @@ max_staleness = 20
 
 acc_mutation = 1
 
+species_data = []
+avg_fitness_data = []
+innovation_data = []
 
 class Population:
     def __init__(self, number_of_size, IMG_size):
         path = dirname(dirname(abspath(__file__)))
         path += "\\trials\\" + str(datetime.now()).replace(':', '-')
         mkdir(path)
+        self.path = path
         print('Saving best models to: ' + path)
 
-        self.toolbar_width = 100
-        self.player_increment = number_of_size // 50
+        self.toolbar_width = 50
+        self.player_increment = number_of_size // self.toolbar_width
 
         self.pop_folder = path
         self.innovation_history = []
@@ -65,7 +70,6 @@ class Population:
         self.gen += 1
         new_generation = []
         avgSum = self.getAvgFitnessSum()
-
         sys.stdout.write("[%s]" % (" " * self.toolbar_width))
         sys.stdout.flush()
         sys.stdout.write("\b" * (self.toolbar_width + 1))  # return to start of line, after '['
@@ -97,7 +101,20 @@ class Population:
 
         sys.stdout.write("]\n")  # this ends the progress bar
 
+        avg_fitness_data.append(avgSum)
+        innovation_data.append(len(innovation_data))
+        self.saveData()
         self.population = new_generation
+
+    def saveData(self):
+        filename = self.path + '\\data.json'
+        jsonFile = open(filename, "w")
+        data = {'species_data': species_data,
+                'avg_fitness_data': avg_fitness_data,
+                'innovation_data': innovation_data}
+        json_data = json.dumps(data)
+        jsonFile.write(json_data)
+        jsonFile.close()
 
     def simulatePopulation(self, data):
         print('Running population simulation for generation: ' + str(self.gen))
@@ -120,13 +137,13 @@ class Population:
         tmp_best.gen = self.gen
         self.best_players_by_gen.append(tmp_best.clone())
 
+        filename = "Gen-" + str(self.gen) + "-F" + str(self.best_fitness) + ".json"
+        tmp_best.save(self.pop_folder + '\\' + filename)
+
         if tmp_best.fitness > self.best_fitness:
             self.best_fitness = tmp_best.fitness
             print("=-=-=-=-=-=-=-=-=-=-=-=\nNew King:\n", str(tmp_best))
-
-            filename = "Gen-" + str(self.gen) + "-F" + str(self.best_fitness) + ".json"
             print("Saving his data to file: " + filename)
-            tmp_best.save(self.pop_folder + '\\' + filename)
             print('=-=-=-=-=-=-=-=-=-=-=-=')
 
     def speciate(self):
@@ -148,26 +165,36 @@ class Population:
             species.sort_players()
         self.species = sorted(self.species, key=attrgetter('best_fitness'), reverse=True)
 
+        gen_species_data = {}
+        for species in self.species:
+            gen_species_data[str(species.uuid)] = {'amt_nn': len(species.players)}
+            species_data.append(gen_species_data)
+
     def killStaleAndBadSpecies(self):
         if len(self.species) < 2:
             return
 
-        for i in range(2, len(self.species)):
+        i = 2
+        while i < len(self.species):
             if self.species[i].staleness >= max_staleness:
                 del self.species[i]
                 i -= 0
+            i += 1
 
         avgSum = self.getAvgFitnessSum()
-        for i in range(1, len(self.species)):
+        i = 1
+        while i < len(self.species):
             if self.species[i].average_fitness / avgSum * len(self.population) < 1:
                 del self.species[i]
                 i -= 0
+            i += 1
 
     def cullSpecies(self):
         for species in self.species:
             species.cull()
             species.fitness_sharing()
             species.set_average()
+            species_data[self.gen][str(species.uuid)]['avg_fit'] = species.average_fitness
 
     def getAvgFitnessSum(self):
         avgSum = 0

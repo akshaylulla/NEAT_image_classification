@@ -3,11 +3,11 @@ import math
 import random
 from random import gauss
 import numpy as np
+import uuid
 
 #### Species Config
 # Variables
 excess_coeff = 1.5
-large_gene_normalizer = 200
 weight_diff_coeff = 1
 compatibility_threshold = 3
 # This variable is used in analyzing if the new best fitness is
@@ -16,16 +16,14 @@ fitness_comparison = 0.0
 
 # Config = {
 #     excess_coeff = 1.5
-#     lgn = 1000
 #     weight_diff_coeff = 1
 #     compatibility_threshold = 3
 # }
 
 
 def setConfig(config):
-    global excess_coeff, large_gene_normalizer, weight_diff_coeff, compatibility_threshold
+    global excess_coeff, weight_diff_coeff, compatibility_threshold
     excess_coeff = config["excess_coeff"]
-    large_gene_normalizer = config["lgn"]
     weight_diff_coeff = config["weight_diff_coeff"]
     compatibility_threshold = config["compatibility_threshold"]
 
@@ -48,6 +46,7 @@ def get_information(brain_1, brain_2):
 
 class Species:
     def __init__(self, p=None):
+        self.uuid = uuid.uuid1()
         self.players = [] if p is None else [p]
         self.best_fitness = 0 if p is None else p.fitness
         self.champion = None if p is None else p.clone()
@@ -56,9 +55,12 @@ class Species:
         self.staleness = 0
 
     def same_species(self, genome):
+        large_gene_normalizer = len(genome.genes) - 20
+        if large_gene_normalizer < 1:
+            large_gene_normalizer = 1
         information = get_information(self.champion.genome, genome)
 
-        compatibility = (excess_coeff * information[0]) / (large_gene_normalizer + weight_diff_coeff * information[1])
+        compatibility = (excess_coeff * information[0] / large_gene_normalizer) + (weight_diff_coeff * information[1])
         return compatibility < compatibility_threshold
 
     def add_to_species(self, player):
