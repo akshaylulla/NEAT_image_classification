@@ -194,7 +194,6 @@ class Population:
             species.cull()
             species.fitness_sharing()
             species.set_average()
-            species_data[self.gen][str(species.uuid)]['avg_fit'] = species.average_fitness
 
     def getAvgFitnessSum(self):
         avgSum = 0
