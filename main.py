@@ -13,7 +13,7 @@ import sys
 IMG_SIZE = 32
 images_dir = 'dogs-vs-cats/train'
 toolbar_width = 50
-img_amt = 2500
+img_amt = 25000
 increment = img_amt // toolbar_width
 
 
@@ -91,6 +91,18 @@ def getNImg(n):
     for num in random_n:
         train_data.append((X_train[num], y_train[num]))
 
+    all_same = True
+    test = -1
+    for data in train_data:
+        if test == -1:
+            test = data[1]
+        if data[1] != test:
+            all_same = False
+            break;
+
+    if all_same:
+        train_data = getNImg(n)
+
     return train_data
 
 
@@ -101,7 +113,7 @@ pop = Population(2048, IMG_SIZE)
 first_run = True
 start = time.time()
 while True:
-    pop.simulatePopulation(getNImg(150))
+    pop.simulatePopulation(getNImg(250))
     pop.naturalSelection()
     if first_run:
         end = time.time()

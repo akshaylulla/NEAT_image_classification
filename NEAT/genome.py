@@ -1,6 +1,8 @@
 import json
 from typing import List
 
+import numpy as np
+
 from NEAT.node import Node, nodesCantConnect
 from NEAT.connection import Connection
 from NEAT.innovation import InnovationHistory
@@ -17,6 +19,7 @@ class Genome:
         self.nextNode = 0
         self.network = []
         self.biasNode = 0
+        self.layer_count = []
 
         if not empty:
             for i in range(inputs):
@@ -90,9 +93,15 @@ class Genome:
         self.connectNodes()
         self.network = []
 
+        self.layer_count = []
         for layer in range(self.layers):
+            layer_id = 0
+            self.layer_count.append(0)
             for node in self.nodes:
                 if node.layer == layer:
+                    node.layer_id = layer_id
+                    layer_id += 1
+                    self.layer_count[layer] += 1
                     self.network.append(node)
 
     def feedForward(self, input_values):
@@ -115,6 +124,25 @@ class Genome:
             node.input_sum = 0
 
         return output_values
+
+    def feedForward2(self, input_values):
+        # 1xL1
+        X = np.array(input_values)
+        X = np.pad(X, (0, 1), 'constant')
+        # L1xL2 then L2xL3 then L3xL4 etc until LNx2
+        WLayers = []
+        for i in range(self.layers-1):
+            WLayers.append(np.zeros((self.layer_count[i], self.layer_count[i+1])))
+        for gene in self.genes:
+            layer = gene.from_node.layer
+            WLayers[layer][gene.from_node.layer_id][gene.to_node.layer_id] = gene.weight
+
+        for i in range(self.layers-1):
+            X = np.dot(X, WLayers[i])
+            # X = 1 / (1 + np.exp(X))
+            X = np.tanh(X)
+
+        return X
 
     def innovateAndConnect(self, innovation_history_array, from_node, to_node, weight):
         new_connection = True

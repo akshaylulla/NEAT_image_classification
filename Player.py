@@ -66,8 +66,6 @@ class Player:
             total += 1
 
         self.fitness = score / total
-        if self.fitness == 1:
-            print("WHAT THE FUCK")
 
     def clone(self):
         new_player = Player(self.image_height, self.image_width)

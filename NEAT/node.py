@@ -25,6 +25,7 @@ def nodesCantConnect(node1, node2):
 class Node:
     def __init__(self, id, layer=0):
         self.id = id
+        self.layer_id = 0
         self.input_sum = 0.0
         self.output_sum = 0.0
         self.output_connections = []
