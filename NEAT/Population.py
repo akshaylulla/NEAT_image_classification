@@ -145,8 +145,6 @@ class Population:
 
         filename = "Gen-" + str(self.gen) + "-F" + str(self.best_fitness) + ".json"
         tmp_best.save(self.pop_folder + '\\' + filename)
-        print(tmp_best.fitness)
-        print(self.best_fitness)
         if tmp_best.fitness > self.best_fitness:
             self.best_fitness = tmp_best.fitness
             print("=-=-=-=-=-=-=-=-=-=-=-=\nNew King:\n", str(tmp_best))
