@@ -1,3 +1,6 @@
+import json
+from typing import List
+
 from NEAT.node import Node, nodesCantConnect
 from NEAT.connection import Connection
 from NEAT.innovation import InnovationHistory
@@ -33,6 +36,42 @@ class Genome:
             self.nodes.append(self.biasNode)
             self.nextNode += 1
             self.generateNetwork()
+
+    def toJSONObj(self):
+        json_data = {'inputs': self.inputs, 'outputs': self.outputs, 'layers': self.layers, 'nextNode': self.nextNode,
+                     'biasNode': self.biasNode.id}
+
+        genes = []
+        for gene in self.genes:
+            genes.append(gene.toJSONObj())
+        json_data['genes'] = genes
+
+        nodes = []
+        for node in self.nodes:
+            nodes.append(node.toJSONObj())
+        json_data['nodes'] = nodes
+
+        return json_data
+
+    def loadFromData(self, data):
+        self.inputs = data['inputs']
+        self.outputs = data['outputs']
+        self.layers = data['layers']
+        self.nextNode = data['nextNode']
+
+        for d in data['nodes']:
+            self.nodes.append(Node(d['id'], d['layer']))
+
+        self.biasNode = self.getNode(data['biasNode'])
+
+        for d in data['genes']:
+            to_node = self.getNode(d['to_node'])
+            from_node = self.getNode(d['from_node'])
+            gene = Connection(from_node, to_node, d['weight'], d['innovation_number'], d['enabled'])
+            self.genes.append(gene)
+
+        self.connectNodes()
+        self.generateNetwork()
 
     def getNode(self, id):
         for node in self.nodes:

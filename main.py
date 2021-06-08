@@ -3,11 +3,16 @@ import random
 import numpy as np
 import os
 from sklearn.model_selection import train_test_split
+
+from NEAT.Population import Population
 from Player import Player
+import sys
 
-IMG_SIZE = 100
+IMG_SIZE = 32
 images_dir = 'dogs-vs-cats/train'
-
+toolbar_width = 50
+img_amt = 2500
+increment = img_amt // toolbar_width
 
 # function that looks at file name to check whether it's a dog or cat in training data
 def label_img(img):
@@ -22,11 +27,22 @@ def label_img(img):
 
 # creates training data (converts images to grayscale)
 def process_data():
+    print('Loading Data...')
+    # setup toolbar
+    sys.stdout.write("[%s]" % (" " * toolbar_width))
+    sys.stdout.flush()
+    sys.stdout.write("\b" * (toolbar_width + 1))  # return to start of line, after '['
     my_data = []
     my_result = []
     # loop through images in training data directory
-    counter = 0
+    counter_1, counter_2 = 0, 0
     for img in os.listdir(images_dir):
+        counter_1 += 1
+        counter_2 += 1
+        if counter_1 > increment:
+            counter_1 = 0
+            sys.stdout.write("-")
+            sys.stdout.flush()
         # set the label for the pixel data - either 1 (cat) or 0 (dog)
         label = label_img(img)
         # get training data image
@@ -39,13 +55,14 @@ def process_data():
         my_data.append(np.array(gray))
         my_result.append(label)
 
-        counter += 1
-        if counter > 500:
+        if counter_2 > img_amt:
             break
-
+    sys.stdout.write("]\n")  # this ends the progress bar
+    print("Data loaded.")
     np.save('my_data.npy', my_data)
     np.save('my_result.npy', my_result)
     return my_data, my_result
+
 
 
 X, y = process_data()
@@ -57,49 +74,23 @@ X = X/255.
 mean_X = np.mean(X)
 std_X = np.std(X)
 X = (X - mean_X)/std_X
-X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=(2/3), random_state=0)
+X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=(3/4), random_state=0)
 # get a sample of 100 points from training data
 
-def get100():
+def getNImg(n):
     train_data = []
     # generate 100 random numbers between 0 and number of training samples
     # look into using xrange instead of range
-    random_100 = random.sample(range(1, len(y_train)), 200)
-    for num in random_100:
+    random_n = random.sample(range(1, len(y_train)), n)
+    for num in random_n:
         train_data.append((X_train[num], y_train[num]))
 
     return train_data
 
-
-player = Player(IMG_SIZE, IMG_SIZE)
 ih=[]
-player.genome.mutate(ih)
-player.genome.mutate(ih)
-player.genome.mutate(ih)
-player.genome.mutate(ih)
-player.genome.mutate(ih)
-player.genome.mutate(ih)
-player.genome.mutate(ih)
-player.genome.mutate(ih)
-player.genome.mutate(ih)
-player.genome.mutate(ih)
-player.genome.mutate(ih)
-player.genome.mutate(ih)
-player.genome.mutate(ih)
-player.genome.mutate(ih)
-player.genome.mutate(ih)
-player.genome.mutate(ih)
-player.genome.mutate(ih)
-player.genome.mutate(ih)
-player.genome.mutate(ih)
-player.genome.mutate(ih)
-player.genome.mutate(ih)
-player.genome.mutate(ih)
-player.genome.mutate(ih)
-player.genome.mutate(ih)
-player.genome.mutate(ih)
-player.genome.mutate(ih)
-# Money
-player.test(get100())
 
-print(str(player))
+pop = Population(2560, IMG_SIZE)
+
+while True:
+    pop.simulatePopulation(getNImg(250))
+    pop.naturalSelection()

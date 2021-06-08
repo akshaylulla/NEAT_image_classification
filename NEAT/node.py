@@ -1,12 +1,13 @@
 import math
 
-
 # Type of sigmoid
 # Options = "tanh", "sigmoid"
 type = "tanh"
 
+
 def setConfig(config):
     type = config["type"]
+
 
 def sigmoid(val):
     if type == "tanh":
@@ -16,8 +17,10 @@ def sigmoid(val):
     else:
         return val
 
+
 def nodesCantConnect(node1, node2):
     return node1.isConnectedTo(node2) or node1.layer == node2.layer
+
 
 class Node:
     def __init__(self, id, layer=0):
@@ -54,3 +57,7 @@ class Node:
 
     def __str__(self):
         return str(self.id)
+
+    def toJSONObj(self):
+        json_data = {'id': self.id, 'layer': self.layer}
+        return json_data

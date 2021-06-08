@@ -1,18 +1,38 @@
 import time
 import sys
+from datetime import datetime
 
-toolbar_width = 40
+import uuid
 
-print('Running population simulation for generation: ' + str(1))
-# setup toolbar
-sys.stdout.write("[%s]" % (" " * toolbar_width))
-sys.stdout.flush()
-sys.stdout.write("\b" * (toolbar_width+1)) # return to start of line, after '['
+from os.path import dirname, abspath, join
+from os import mkdir
 
-for i in range(toolbar_width):
-    time.sleep(0.2) # do real work here
-    # update the bar
-    sys.stdout.write("-")
-    sys.stdout.flush()
+from Player import Player
 
-sys.stdout.write("]\n") # this ends the progress bar
+p = dirname(abspath(__file__))
+
+print(p)
+
+p += "\\trials\\" + str(datetime.now()).replace(':', '-')
+
+print(p)
+
+mkdir(p)
+
+player = Player(10, 2)
+
+ih = []
+player.genome.mutate(ih)
+player.genome.mutate(ih)
+player.genome.mutate(ih)
+player.genome.mutate(ih)
+player.genome.mutate(ih)
+player.genome.mutate(ih)
+player.genome.mutate(ih)
+player.genome.mutate(ih)
+player.genome.mutate(ih)
+player.genome.mutate(ih)
+player.genome.mutate(ih)
+player.genome.mutate(ih)
+
+player.save(p + '\\' + 'Gen-' + str(27) + '.json')

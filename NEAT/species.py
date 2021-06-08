@@ -30,7 +30,7 @@ def setConfig(config):
     compatibility_threshold = config["compatibility_threshold"]
 
 
-def get_information(self, brain_1, brain_2):
+def get_information(brain_1, brain_2):
     matching = 0
     total_diff = 0.0
     for gene_1 in brain_1.genes:
@@ -39,7 +39,7 @@ def get_information(self, brain_1, brain_2):
                 matching += 1
                 total_diff += abs(gene_1.weight - gene_2.weight)
                 break
-    excess_and_disjoint = brain_1.genes.length + brain_2.genes.length - 2 * matching
+    excess_and_disjoint = len(brain_1.genes) + len(brain_2.genes) - 2 * matching
     avg_weight_diff = 100.0
     if matching != 0:
         avg_weight_diff = total_diff / matching
@@ -95,7 +95,7 @@ class Species:
                 return player
         return self.players[0]
 
-    def get_child(self, innovation_history):
+    def get_child(self, innovation_history, gen):
         baby = None
         r = random.random()
         # 5%
@@ -106,10 +106,11 @@ class Species:
             p2 = self.select_player()
             baby = p1.crossover(p2) if p1.fitness > p2.fitness else p2.crossover(p1)
         baby.genome.mutate(innovation_history)
+        baby.gen = gen
         return baby
 
     def cull(self):
-        self.players = self.players[0, math.ceil(len(self.players)/2.0)]
+        self.players = self.players[0:math.ceil(len(self.players)/2.0)]
 
     def fitness_sharing(self):
         for player in self.players:

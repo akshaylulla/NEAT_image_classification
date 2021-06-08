@@ -57,3 +57,9 @@ class Connection:
 
     def __str__(self):
         return str(self.from_node) + " to " + str(self.to_node) + ": " + str(self.weight)
+
+    def toJSONObj(self):
+        json_data = {'to_node': self.to_node.id, 'from_node': self.from_node.id, 'weight': self.weight,
+                     'enabled': self.enabled, 'innovation_number': self.innovation_number}
+        return json_data
+
