@@ -9,6 +9,7 @@ import sys
 import uuid
 from os.path import dirname, abspath
 from os import mkdir
+from joblib import Parallel, delayed
 
 max_staleness = 20
 
@@ -100,7 +101,6 @@ class Population:
             new_generation.append(self.species[0].get_child(self.innovation_history, self.gen))
 
         sys.stdout.write("]\n")  # this ends the progress bar
-
         avg_fitness_data.append(avgSum)
         innovation_data.append(len(innovation_data))
         self.saveData()
@@ -122,14 +122,20 @@ class Population:
         sys.stdout.write("[%s]" % (" " * self.toolbar_width))
         sys.stdout.flush()
         sys.stdout.write("\b" * (self.toolbar_width + 1))  # return to start of line, after '['
-        counter = 0
+        """counter = 0
         for player in self.population:
             counter += 1
             if counter > self.player_increment:
                 counter = 0
                 sys.stdout.write("-")
                 sys.stdout.flush()
+            player.test(data)"""
+        def run_together(player):
             player.test(data)
+
+        # Parallel(n_jobs=-1, verbose=10)(delayed(run_together)(player) for player in self.population) - with verbose
+        Parallel(n_jobs=-1)(delayed(run_together)(player) for player in self.population)
+
         sys.stdout.write("]\n")  # this ends the progress bar
 
     def setBestPlayer(self):
@@ -139,7 +145,8 @@ class Population:
 
         filename = "Gen-" + str(self.gen) + "-F" + str(self.best_fitness) + ".json"
         tmp_best.save(self.pop_folder + '\\' + filename)
-
+        print(tmp_best.fitness)
+        print(self.best_fitness)
         if tmp_best.fitness > self.best_fitness:
             self.best_fitness = tmp_best.fitness
             print("=-=-=-=-=-=-=-=-=-=-=-=\nNew King:\n", str(tmp_best))
