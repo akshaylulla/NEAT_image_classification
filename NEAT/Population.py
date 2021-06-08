@@ -129,13 +129,15 @@ class Population:
                 counter = 0
                 sys.stdout.write("-")
                 sys.stdout.flush()
-            player.test(data)"""
+            print("before - ", player.fitness)
+            player.test(data)
+            print("after - ", player.fitness)"""
+
         def run_together(player):
             player.test(data)
 
         # Parallel(n_jobs=-1, verbose=10)(delayed(run_together)(player) for player in self.population) - with verbose
-        Parallel(n_jobs=-1)(delayed(run_together)(player) for player in self.population)
-
+        Parallel(n_jobs=-1, backend="threading")(delayed(run_together)(player) for player in self.population)
         sys.stdout.write("]\n")  # this ends the progress bar
 
     def setBestPlayer(self):
@@ -145,10 +147,12 @@ class Population:
 
         filename = "Gen-" + str(self.gen) + "-F" + str(self.best_fitness) + ".json"
         tmp_best.save(self.pop_folder + '\\' + filename)
+        print(tmp_best.fitness)
+        print(self.best_fitness)
         if tmp_best.fitness > self.best_fitness:
             self.best_fitness = tmp_best.fitness
             print("=-=-=-=-=-=-=-=-=-=-=-=\nNew King:\n", str(tmp_best))
-            print("Saving his data to file: " + filename)
+            print("Saving data to file: " + filename)
             print('=-=-=-=-=-=-=-=-=-=-=-=')
 
     def speciate(self):
